@@ -2,12 +2,14 @@ package socketio
 
 import (
 	"crypto/tls"
-	"github.com/gorilla/websocket"
 	"errors"
 	"fmt"
+	"github.com/ddliu/go-httpclient"
+	"github.com/gorilla/websocket"
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"reflect"
 	"strconv"
 	"strings"
 	"time"
@@ -23,7 +25,7 @@ type Client struct {
 	*EventEmitter
 }
 
-func Dial(origin, proxy string) (*Client, error) {
+func Dial(origin, proxy string, headers httpclient.Map) (*Client, error) {
 	u, err := url.Parse(origin)
 	if err != nil {
 		return nil, err
@@ -46,9 +48,12 @@ func Dial(origin, proxy string) (*Client, error) {
 		return nil, err
 	}
 
+	for k, v := range headers {
+		if reflect.ValueOf(k).Kind() == reflect.String {
+			request.Header.Set(k.(string), v.(string))
+		}
+	}
 	r, err := client.Do(request)
-
-
 
 	if err != nil {
 		return nil, err
